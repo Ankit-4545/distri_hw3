@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package document;
+
+// =====================================================================
+// Messages
+// =====================================================================
+
+// Request to create a new document
+message CreateDocumentRequest {
+  string name    = 1;   // unique document name, e.g. "report.txt"
+  string content = 2;   // initial content
+}
+
+// Response after creating a document
+message CreateDocumentResponse {
+  bool   success = 1;
+  string message = 2;   // confirmation or error text
+}
+
+// Request to retrieve a document
+message GetDocumentRequest {
+  string name = 1;
+}
+
+// Response containing current document content
+message GetDocumentResponse {
+  bool   success = 1;
+  string content = 2;
+  string message = 3;   // error message if not found
+}
+
+// Request to edit (insert text at a position) in a document
+message EditDocumentRequest {
+  string name     = 1;  // document to edit
+  int32  position = 2;  // character offset for insertion
+  string text     = 3;  // text to insert
+}
+
+// Response after editing
+message EditDocumentResponse {
+  bool   success     = 1;
+  string new_content = 2;
+  string message     = 3;
+}
+
+// Request to subscribe to a document's updates
+message UpdateRequest {
+  string name = 1;
+}
+
+// Streamed update sent to subscribed clients whenever a document changes
+message DocumentUpdate {
+  string name    = 1;  // document that was modified
+  string content = 2;  // full updated content
+}
+
+// =====================================================================
+// Service
+// =====================================================================
+
+service DocumentService {
+  // Create a new document with a unique name and initial content
+  rpc CreateDocument(CreateDocumentRequest)  returns (CreateDocumentResponse);
+
+  // Return the current contents of a document
+  rpc GetDocument(GetDocumentRequest)        returns (GetDocumentResponse);
+
+  // Insert text at a specified character position in a document
+  rpc EditDocument(EditDocumentRequest)      returns (EditDocumentResponse);
+
+  // Server-streaming RPC: receive live updates whenever the document changes
+  rpc SubscribeToUpdates(UpdateRequest)      returns (stream DocumentUpdate);
+}
